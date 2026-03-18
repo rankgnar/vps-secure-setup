@@ -76,7 +76,7 @@ confirm() {
   fi
 
   while true; do
-    read -rp "$(echo -e "${YELLOW}  ? ${prompt} ${yn_label}: ${RESET}")" answer
+    read -rp "$(echo -e "${YELLOW}  ? ${prompt} ${yn_label}: ${RESET}")" answer </dev/tty
     answer="${answer:-$default}"
     case "$answer" in
       [Yy]*) return 0 ;;
@@ -88,7 +88,7 @@ confirm() {
 
 # Pause and wait for the user to press Enter.
 press_enter() {
-  read -rp "$(echo -e "${CYAN}  Press [Enter] to continue...${RESET}")"
+  read -rp "$(echo -e "${CYAN}  Press [Enter] to continue...${RESET}")" </dev/tty
 }
 
 # Check whether a command exists.
@@ -371,7 +371,7 @@ step_create_user() {
   echo ""
 
   # Ask for username.
-  read -rp "$(echo -e "${YELLOW}  ? Username to create [openclaw]: ${RESET}")" NEW_USER
+  read -rp "$(echo -e "${YELLOW}  ? Username to create [openclaw]: ${RESET}")" NEW_USER </dev/tty
   NEW_USER="${NEW_USER:-openclaw}"
 
   # Validate username format.
@@ -411,7 +411,7 @@ step_create_user() {
 
   info "Creating user '${NEW_USER}'... You'll be asked to set a password."
   echo ""
-  adduser --gecos "" "$NEW_USER"
+  adduser --gecos "" "$NEW_USER" </dev/tty
 
   info "Adding '${NEW_USER}' to sudo group..."
   usermod -aG sudo "$NEW_USER"
