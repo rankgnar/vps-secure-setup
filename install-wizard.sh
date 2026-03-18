@@ -252,12 +252,36 @@ step_ssh_hardening() {
   echo -e "  ${CYAN}(If anything breaks, restore with: cp ${backup} ${sshd_config})${RESET}"
   echo ""
 
-  # Apply settings — update or append each directive.
+  # Apply settings — update or replace each directive.
+  # Uses sed to replace only the FIRST matching line, then comments out any remaining duplicates.
   apply_sshd_setting() {
     local key="$1"
     local value="$2"
-    if grep -qE "^#?${key}\b" "$sshd_config"; then
-      sed -i -E "s|^#?${key}.*|${key} ${value}|" "$sshd_config"
+    local count
+    count=$(grep -cE "^#?${key}\b" "$sshd_config" 2>/dev/null || echo 0)
+
+    if [[ "$count" -gt 0 ]]; then
+      # Replace the first match with the desired value
+      sed -i -E "0,/^#?${key}\b/s|^#?${key}.*|${key} ${value}|" "$sshd_config"
+      # Comment out any remaining duplicate lines for this key
+      if [[ "$count" -gt 1 ]]; then
+        # After the first line is set, comment out any OTHER lines with the same key
+        local first_done=false
+        local tmpfile="${sshd_config}.tmp.$$"
+        while IFS= read -r line; do
+          if [[ "$line" =~ ^${key}[[:space:]] ]] || [[ "$line" =~ ^#${key}[[:space:]] ]]; then
+            if [[ "$first_done" == "false" ]]; then
+              echo "$line" >> "$tmpfile"
+              first_done=true
+            else
+              echo "# DISABLED by wizard: $line" >> "$tmpfile"
+            fi
+          else
+            echo "$line" >> "$tmpfile"
+          fi
+        done < "$sshd_config"
+        mv "$tmpfile" "$sshd_config"
+      fi
     else
       echo "${key} ${value}" >> "$sshd_config"
     fi
@@ -306,14 +330,24 @@ step_ssh_hardening() {
 
   # Restart SSH daemon.
   info "Restarting SSH service..."
-  if systemctl is-active --quiet sshd 2>/dev/null; then
-    systemctl restart sshd
-  elif systemctl is-active --quiet ssh 2>/dev/null; then
-    systemctl restart ssh
+  local ssh_restart_ok=false
+  if systemctl is-active --quiet sshd 2>/dev/null || systemctl list-unit-files sshd.service &>/dev/null; then
+    if systemctl restart sshd 2>/dev/null; then ssh_restart_ok=true; fi
+  elif systemctl is-active --quiet ssh 2>/dev/null || systemctl list-unit-files ssh.service &>/dev/null; then
+    if systemctl restart ssh 2>/dev/null; then ssh_restart_ok=true; fi
   else
-    service ssh restart 2>/dev/null || service sshd restart 2>/dev/null || {
-      err "Could not restart SSH service. Restart it manually."
-    }
+    if service ssh restart 2>/dev/null || service sshd restart 2>/dev/null; then ssh_restart_ok=true; fi
+  fi
+
+  if [[ "$ssh_restart_ok" != "true" ]]; then
+    echo ""
+    err "SSH FAILED TO RESTART!"
+    err "Automatically restoring backup..."
+    cp "$backup" "$sshd_config"
+    systemctl restart ssh 2>/dev/null || systemctl restart sshd 2>/dev/null || service ssh restart 2>/dev/null
+    ok "Backup restored and SSH restarted with original config."
+    warn "Please check what went wrong with: journalctl -xeu ssh.service"
+    exit 1
   fi
 
   echo ""
