@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# install-wizard.sh — OpenClaw Server Setup Wizard
-# Interactive, step-by-step guide to harden your server and install OpenClaw.
+# install-wizard.sh — VPS Secure Setup Wizard
+# Interactive, step-by-step guide to harden your server.
 # Each command is shown and explained before it runs. Nothing happens without your OK.
 
 set -euo pipefail
@@ -20,12 +20,12 @@ banner() {
   clear
   echo -e "${CYAN}${BOLD}"
   cat << 'EOF'
-  ██████╗ ██████╗ ███████╗███╗   ██╗ ██████╗██╗      █████╗ ██╗    ██╗
- ██╔═══██╗██╔══██╗██╔════╝████╗  ██║██╔════╝██║     ██╔══██╗██║    ██║
- ██║   ██║██████╔╝█████╗  ██╔██╗ ██║██║     ██║     ███████║██║ █╗ ██║
- ██║   ██║██╔═══╝ ██╔══╝  ██║╚██╗██║██║     ██║     ██╔══██║██║███╗██║
- ╚██████╔╝██║     ███████╗██║ ╚████║╚██████╗███████╗██║  ██║╚███╔███╔╝
-  ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚══════╝╚═╝  ╚═╝ ╚══╝╚══╝
+ ██╗   ██╗██████╗ ███████╗    ███████╗███████╗ ██████╗██╗   ██╗██████╗ ███████╗
+ ██║   ██║██╔══██╗██╔════╝    ██╔════╝██╔════╝██╔════╝██║   ██║██╔══██╗██╔════╝
+ ██║   ██║██████╔╝███████╗    ███████╗█████╗  ██║     ██║   ██║██████╔╝█████╗
+ ╚██╗ ██╔╝██╔═══╝ ╚════██║    ╚════██║██╔══╝  ██║     ██║   ██║██╔══██╗██╔══╝
+  ╚████╔╝ ██║     ███████║    ███████║███████╗╚██████╗╚██████╔╝██║  ██║███████╗
+   ╚═══╝  ╚═╝     ╚══════╝    ╚══════╝╚══════╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝
 EOF
   echo -e "${RESET}"
   echo -e "${BOLD}  Server Setup Wizard${RESET}  ${DIM}— Step-by-step, nothing runs without your OK${RESET}"
@@ -122,7 +122,7 @@ preflight() {
 # ─── Global state ─────────────────────────────────────────────────────────────
 TAILSCALE_IP=""
 NEW_USER=""
-TOTAL_STEPS=13
+TOTAL_STEPS=12
 
 # ─── STEP 1: Install Tailscale ────────────────────────────────────────────────
 
@@ -366,9 +366,9 @@ This is a best practice — you do your daily work as a regular user, and only \
 use admin powers (via sudo) when needed. Think of it like not walking around \
 with the master key to every door all the time."
 
-  echo -e "${BOLD}  → What username do you want? (press Enter for 'openclaw'):${RESET}"
+  echo -e "${BOLD}  → What username do you want? (press Enter for 'admin'):${RESET}"
   read -r NEW_USER </dev/tty
-  NEW_USER="${NEW_USER:-openclaw}"
+  NEW_USER="${NEW_USER:-admin}"
 
   echo ""
   echo -e "  Creating user: ${CYAN}${BOLD}${NEW_USER}${RESET}"
@@ -574,38 +574,6 @@ automatically roll back to the old config so you don't get locked out."
   fi
 }
 
-# ─── STEP 13: Install OpenClaw ────────────────────────────────────────────────
-
-step13_install_openclaw() {
-  step_header 13 $TOTAL_STEPS "Install OpenClaw"
-
-  explain "The final step! OpenClaw is an AI assistant platform that runs on your \
-server. You should install it as your regular user (not root) — so close this \
-root session first, reconnect as '${NEW_USER}', and then run the installer."
-
-  echo -e "${YELLOW}  1. Close this root session (or open the new terminal you used in step 12)${RESET}"
-  echo -e "${YELLOW}  2. You should already be connected as '${NEW_USER}@${TAILSCALE_IP}'${RESET}"
-  echo -e "${YELLOW}  3. Run this command:${RESET}"
-  echo ""
-
-  echo -e "${GREEN}${BOLD}  ┌──────────────────────────────────────────────────────────┐${RESET}"
-  echo -e "${GREEN}${BOLD}  │${RESET}  ${CYAN}curl -fsSL https://openclaw.ai/install.sh | bash${RESET}"
-  echo -e "${GREEN}${BOLD}  └──────────────────────────────────────────────────────────┘${RESET}"
-  echo ""
-
-  echo -e "${DIM}  Your new connection command (bookmark this):${RESET}"
-  echo -e "  ${CYAN}ssh ${NEW_USER}@${TAILSCALE_IP}${RESET}"
-  echo ""
-
-  confirm_yn "Do you want me to paste the OpenClaw install command for you to copy?" && {
-    echo ""
-    echo -e "${CYAN}curl -fsSL https://openclaw.ai/install.sh | bash${RESET}"
-    echo ""
-  } || true
-
-  ok "You're all set! Run the OpenClaw installer in your new terminal."
-}
-
 # ─── Summary ──────────────────────────────────────────────────────────────────
 
 show_summary() {
@@ -628,9 +596,8 @@ show_summary() {
   echo -e "  └── Connect with:  ${CYAN}ssh ${NEW_USER}@${TAILSCALE_IP}${RESET}"
   echo ""
   echo -e "  ${BOLD}Config backup:${RESET}  /etc/ssh/sshd_config.backup"
-  echo -e "  ${BOLD}OpenClaw:${RESET}       curl -fsSL https://openclaw.ai/install.sh | bash"
   echo ""
-  echo -e "${DIM}  Run that OpenClaw installer from your new terminal as '${NEW_USER}'.${RESET}"
+  echo -e "${DIM}  Your server is hardened and ready to use.${RESET}"
   echo ""
 }
 
@@ -639,7 +606,7 @@ show_summary() {
 main() {
   banner
 
-  echo -e "${BOLD}  Welcome to the OpenClaw Server Setup Wizard!${RESET}"
+  echo -e "${BOLD}  Welcome to the VPS Secure Setup Wizard!${RESET}"
   echo ""
   echo -e "  This wizard will guide you through hardening your server step by step."
   echo -e "  ${BOLD}Every command is shown and explained before it runs.${RESET}"
@@ -666,7 +633,6 @@ main() {
   step10_verify_user
   step11_restart_ssh
   step12_verify_connection
-  step13_install_openclaw
 
   show_summary
 }

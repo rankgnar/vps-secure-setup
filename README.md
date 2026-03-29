@@ -1,17 +1,16 @@
-# OpenClaw Secure Setup
+# VPS Secure Setup
 
-A guided interactive wizard that secures your VPS and installs OpenClaw step by step.
+A guided interactive wizard that hardens your VPS step by step.
 
 No guesswork, no manual config — just answer a few prompts and you're done.
 
 ## What It Does
 
-The wizard walks you through 4 steps:
+The wizard walks you through 3 phases:
 
 1. **Install & authenticate Tailscale** — connects your VPS to your private network
 2. **Harden SSH** — restricts access to your Tailscale IP, disables password auth, disables root login
-3. **Create a non-root sudo user** — sets up a safe account with SSH keys copied from root
-4. **Install OpenClaw** — runs the official OpenClaw installer for your new user
+3. **Create a non-root sudo user** — sets up a safe admin account to replace root access
 
 ## Safety Features
 
@@ -23,14 +22,14 @@ The wizard walks you through 4 steps:
 ## Usage
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/rankgnar/openclaw-secure-setup/main/install-wizard.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/rankgnar/vps-secure-setup/main/install-wizard.sh | sudo bash
 ```
 
 Or clone and run locally:
 
 ```bash
-git clone https://github.com/rankgnar/openclaw-secure-setup.git
-cd openclaw-secure-setup
+git clone https://github.com/rankgnar/vps-secure-setup.git
+cd vps-secure-setup
 sudo bash install-wizard.sh
 ```
 
