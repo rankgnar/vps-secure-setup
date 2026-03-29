@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/banner.png" alt="VPS Secure Setup banner" width="100%">
+</p>
+
 # VPS Secure Setup
 
 A guided interactive wizard that hardens your VPS step by step.
